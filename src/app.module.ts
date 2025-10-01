@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -9,6 +9,7 @@ import { PhotosModule } from './photos/photos.module';
 import { LikesModule } from './likes/likes.module';
 import { MessagesModule } from './messages/messages.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { RequestLoggerMiddleware } from './shared/middleware/request-logger.middleware';
 
 @Module({
   imports: [
@@ -26,4 +27,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
+}
