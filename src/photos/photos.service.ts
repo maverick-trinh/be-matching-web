@@ -1,19 +1,29 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreatePhotoDto } from './dto/create-photo.dto';
 import { UpdatePhotoDto } from './dto/update-photo.dto';
 
 @Injectable()
 export class PhotosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cloudinaryService: CloudinaryService,
+  ) {}
 
-  async create(createPhotoDto: CreatePhotoDto) {
-    return this.prisma.photo.create({
-      data: createPhotoDto,
+  async create(createPhotoDto: CreatePhotoDto, file: string) {
+    const { url, publicId } = await this.cloudinaryService.uploadImage(file);
+    const photo = await this.prisma.photo.create({
+      data: {
+        ...createPhotoDto,
+        url,
+        publicId,
+      },
       include: {
         member: true,
       },
     });
+    return photo;
   }
 
   async findAll() {
@@ -39,11 +49,27 @@ export class PhotosService {
     return photo;
   }
 
-  async update(id: string, updatePhotoDto: UpdatePhotoDto) {
-    await this.findOne(id);
+  async update(id: string, updatePhotoDto: UpdatePhotoDto, file?: string) {
+    const photo = await this.findOne(id);
+    let url = photo.url;
+    let publicId = photo.publicId;
+
+    if (file && photo.publicId) {
+      const result = await this.cloudinaryService.updateImage(
+        photo.publicId,
+        file,
+      );
+      url = result.url;
+      publicId = result.publicId;
+    }
+
     return this.prisma.photo.update({
       where: { id },
-      data: updatePhotoDto,
+      data: {
+        ...updatePhotoDto,
+        url,
+        publicId,
+      },
       include: {
         member: true,
       },
@@ -51,7 +77,10 @@ export class PhotosService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+    const photo = await this.findOne(id);
+    if (photo.publicId) {
+      await this.cloudinaryService.deleteImage(photo.publicId);
+    }
     return this.prisma.photo.delete({
       where: { id },
     });

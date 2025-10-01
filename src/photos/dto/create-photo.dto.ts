@@ -11,7 +11,11 @@ export class CreatePhotoDto {
   @IsString()
   publicId?: string;
 
-  @ApiProperty({ required: false, default: false, description: 'Whether the photo is approved' })
+  @ApiProperty({
+    required: false,
+    default: false,
+    description: 'Whether the photo is approved',
+  })
   @IsOptional()
   @IsBoolean()
   isApproved?: boolean;

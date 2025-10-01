@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString, IsBoolean, IsEnum } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsEnum,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
@@ -18,12 +24,21 @@ export class CreateUserDto {
   @IsString()
   image?: string;
 
-  @ApiProperty({ required: false, default: false, description: 'Whether the profile is complete' })
+  @ApiProperty({
+    required: false,
+    default: false,
+    description: 'Whether the profile is complete',
+  })
   @IsOptional()
   @IsBoolean()
   profileComplete?: boolean;
 
-  @ApiProperty({ required: false, enum: Role, default: Role.MEMBER, description: 'User role' })
+  @ApiProperty({
+    required: false,
+    enum: Role,
+    default: Role.MEMBER,
+    description: 'User role',
+  })
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
